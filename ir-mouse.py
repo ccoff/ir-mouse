@@ -154,8 +154,8 @@ def irMouse():
                         print("\tMouse pointer is currently at {0}".format(curPtr))
 
                     # Calculate the new mouse pointer location
-                    newPtrX = int(curPtr[0] - (delta[0] * (distance * scaleFactor)))
-                    newPtrY = int(curPtr[1] + (delta[1] * (distance * scaleFactor)))
+                    newPtrX = int(curPtr[0] - (delta[0] * distance * scaleFactor))
+                    newPtrY = int(curPtr[1] + (delta[1] * distance * scaleFactor))
 
                     # Sanity check the new pointer location values
                     if newPtrX < 0:
