@@ -17,7 +17,7 @@
 # that the above copyright notice and this permission notice appear
 # in all copies.
 #
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL 
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
 # WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
 # AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
@@ -36,7 +36,7 @@ import cv2
 from pymouse import PyMouse
 
 
-def irMouse():
+def ir_mouse():
     """Open webcam, track IR movements, and move the mouse pointer accordingly.
     
     Returns:
@@ -76,9 +76,9 @@ def irMouse():
     cv2.createTrackbar('vmax', 'Value', 255, 255, lambda *args: None)
 
     mouse = PyMouse()
-    screenSize = mouse.screen_size()
+    screen_size = mouse.screen_size()
 
-    newLoc = (0, 0)
+    new_loc = (0, 0)
 
     print("Running, press Esc to exit...")
 
@@ -87,7 +87,7 @@ def irMouse():
 
         ret, frame = capture.read()
 
-        if ret == True:
+        if ret:
 
             # Convert capture to hue, saturation, value
             hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -115,67 +115,63 @@ def irMouse():
             composite = cv2.morphologyEx(composite, cv2.MORPH_CLOSE, kernel)
 
             # Use big kernel for blurring
-            argRad = 55
-            composite = cv2.GaussianBlur(composite, (argRad, argRad), 0)
+            arg_rad = 55
+            composite = cv2.GaussianBlur(composite, (arg_rad, arg_rad), 0)
 
-            prevLoc = newLoc
+            prev_loc = new_loc
 
             # Get the maximum location
-            (_, _, _, newLoc) = cv2.minMaxLoc(composite)
+            (_, _, _, new_loc) = cv2.minMaxLoc(composite)
 
             # Only proceed if we are NOT at the top left (i.e., default) corner
-            if newLoc != (0, 0) and prevLoc != (0, 0):
+            if new_loc != (0, 0) and prev_loc != (0, 0):
 
-                # Calculate x-axis and y-axis changes between prevLoc and newLoc
-                delta = np.subtract(newLoc, prevLoc)
+                # Calculate x-axis and y-axis changes between prev_loc and new_loc
+                delta = np.subtract(new_loc, prev_loc)
 
-                # Calculate actual distance between prevLoc and newLoc
-                distance = cv2.norm(newLoc, prevLoc)
+                # Calculate actual distance between prev_loc and new_loc
+                distance = cv2.norm(new_loc, prev_loc)
 
                 # Has the IR pointer moved a "reasonable" distance? If so, move the mouse pointer
                 if distance > 3:
-                    if args.opt_verbose == True:
-                        print("IR pointer moved {0}".format(distance))
+                    if args.opt_verbose:
+                        print(f"IR pointer moved {distance}")
 
                     # Set the scale factor: bigger IR moves == bigger mouse moves
                     if distance > 20:
-                        scaleFactor = 1.7
+                        scale_factor = 1.7
                     elif distance > 9:
-                        scaleFactor = 1.4
+                        scale_factor = 1.4
                     elif distance > 6:
-                        scaleFactor = 1.2
+                        scale_factor = 1.2
                     else:
-                        scaleFactor = 1.0
+                        scale_factor = 1.0
 
                     # Get the mouse pointer's current location
-                    curPtr = mouse.position()
+                    current_ptr = mouse.position()
 
-                    if args.opt_verbose == True:
-                        print("\tMouse pointer is currently at {0}".format(curPtr))
+                    if args.opt_verbose:
+                        print(f"\tMouse pointer is currently at {current_ptr}")
 
                     # Calculate the new mouse pointer location
-                    newPtrX = int(curPtr[0] - (delta[0] * distance * scaleFactor))
-                    newPtrY = int(curPtr[1] + (delta[1] * distance * scaleFactor))
+                    new_ptr_x = int(current_ptr[0] - (delta[0] * distance * scale_factor))
+                    new_ptr_y = int(current_ptr[1] + (delta[1] * distance * scale_factor))
 
                     # Sanity check the new pointer location values
-                    if newPtrX < 0:
-                        newPtrX = 0
-                    if newPtrX > screenSize[0]:
-                        newPtrX = screenSize[0]
-                    if newPtrY < 0:
-                        newPtrY = 0
-                    if newPtrY > screenSize[1]:
-                        newPtrY = screenSize[1]
+                    new_ptr_x = max(new_ptr_x, 0)
+                    new_ptr_x = min(new_ptr_x, screen_size[0])
+                    new_ptr_y = max(new_ptr_y, 0)
+                    new_ptr_y = min(new_ptr_y, screen_size[1])
 
                     # Move the mouse pointer
-                    mouse.move(newPtrX, newPtrY)
+                    mouse.move(new_ptr_x, new_ptr_y)
 
-                    if args.opt_verbose == True:
-                        print("\tMoved mouse pointer to {0}, {1}".format(newPtrX, newPtrY))
+                    if args.opt_verbose:
+                        print(f"\tMoved mouse pointer to {new_ptr_x}, {new_ptr_y}")
 
             # Draw circle around what we're tracking
-            cv2.circle(frame, newLoc, 10, (128, 255, 0), 2)
-            
+            cv2.circle(frame, new_loc, 10, (128, 255, 0), 2)
+
             # Display results in windows
             cv2.imshow('Hue', hthresh)
             cv2.imshow('Saturation', sthresh)
@@ -208,12 +204,11 @@ def main():
     parser = argparse.ArgumentParser(description='Track an infrared pointing device using a webcam, and move the mouse pointer accordingly.')
     parser.add_argument('-v', '--verbose', dest='opt_verbose', action='store_true',
                         help='Display verbose information')
-    
+
     args = parser.parse_args()
 
-    return irMouse()
-    
-    
+    return ir_mouse()
+
+
 if __name__ == '__main__':
     sys.exit(main())
-
